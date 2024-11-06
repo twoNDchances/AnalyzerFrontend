@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form to JSON Preview</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Chia layout của form và JSON */
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .form-container, .json-container {
+            width: 50%;
+        }
+        .json-container pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Form để nhập dữ liệu -->
+        <div class="form-container">
+            <h3>Create New User</h3>
+            <form id="userForm">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name"><br><br>
+
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email"><br><br>
+
+                <label for="age">Age:</label>
+                <input type="number" id="age" name="age"><br><br>
+
+                <label for="role">Role:</label>
+                <select id="role" name="role">
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                    <option value="guest">Guest</option>
+                </select><br><br>
+            </form>
+        </div>
+
+        <!-- JSON Preview -->
+        <div class="json-container">
+            <h3>JSON Preview</h3>
+            <pre id="jsonPreview">{}</pre>
+        </div>
+    </div>
+
+    <script>
+        // Hàm cập nhật JSON preview
+        function updateJsonPreview() {
+            // Lấy các giá trị từ form
+            const formData = {
+                name: $('#name').val(),
+                email: $('#email').val(),
+                age: $('#age').val(),
+                role: $('#role').val()
+            };
+            
+            // Chuyển đổi thành JSON với định dạng đẹp
+            const jsonString = JSON.stringify(formData, null, 4);
+
+            // Hiển thị JSON ở chỗ preview
+            $('#jsonPreview').text(jsonString);
+        }
+
+        // Lắng nghe sự thay đổi của form
+        $('#userForm input, #userForm select').on('input change', updateJsonPreview);
+
+        // Cập nhật JSON preview lần đầu khi trang tải xong
+        $(document).ready(updateJsonPreview);
+    </script>
+</body>
+</html>
