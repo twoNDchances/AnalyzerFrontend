@@ -1,5 +1,6 @@
-import { fetchData, getCookie, notificator } from './general.js';
+import { fetchData, getCookie, notificator, checker } from './general.js';
 
+checker()
 
 $(document).ready(function () {
     fetchData(

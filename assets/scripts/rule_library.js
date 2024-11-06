@@ -1,4 +1,6 @@
-import { fetchData, notificator } from "./general.js";
+import { fetchData, notificator, checker } from "./general.js";
+
+checker()
 
 $(document).ready(function () {
     // Fetch filter

@@ -1,4 +1,6 @@
-import { notificator, callAPI, fetchData } from "./general.js"
+import { notificator, callAPI, fetchData, checker } from "./general.js"
+
+checker()
 
 function updateJsonPreview() {
     const formData = {

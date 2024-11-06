@@ -1,7 +1,8 @@
 import { checker, notificator, callAPI, fetchData } from './general.js';
 
+checker()
+
 $(document).ready(function () {
-    checker()
     // Fetch SQLI
     fetchData(
         '/api/sqli/list',
