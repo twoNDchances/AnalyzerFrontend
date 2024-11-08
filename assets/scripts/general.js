@@ -77,6 +77,7 @@ export function callAPI(method, endpoint, onLoading, onSuccess, onError, body = 
     }
     xhr.open(method, getCookie('backendAPI') + endpoint);
     xhr.setRequestHeader('Content-Type', 'application/json')
+    xhr.timeout = 5000
     if (body == null) {
         xhr.send();
     }

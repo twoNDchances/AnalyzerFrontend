@@ -1,5 +1,6 @@
-import { fetchData, getCookie, notificator } from './general.js';
+import { fetchData, getCookie, notificator, checker } from './general.js';
 
+checker();
 
 $(document).ready(function () {
     fetchData(
@@ -141,6 +142,8 @@ $(document).ready(function () {
             })
         },
         function (status, errorMessage) {
+            console.log(errorMessage);
+            
             if (status == 404) {
                 $('#actionManagementOfWebhook').empty().append(`
                     <div class="item-center">

@@ -1,6 +1,6 @@
-import { notificator, callAPI, fetchData, checker } from "./general.js"
+import { notificator, callAPI, fetchData, checker } from "./general.js";
 
-checker()
+checker();
 
 function updateJsonPreview() {
     const formData = {
@@ -11,17 +11,16 @@ function updateJsonPreview() {
         regex_matcher: $('#regexMatcher').val(),
         rule_library: $('#ruleLibrary').val(),
         action: $('#action').val(),
-    }
+    };
 
-    const jsonString = JSON.stringify(formData, null, 4)
-
-    $('#jsonPreview').text(jsonString)
+    const jsonString = JSON.stringify(formData, null, 4);
+    $('#jsonPreview').text(jsonString);
 }
 
-$('#sqlInjectionRuleCreationForm input, #sqlInjectionRuleCreationForm select, #sqlInjectionRuleCreationForm textarea').on('input change', updateJsonPreview)
+$('#xssRuleCreationForm input, #xssRuleCreationForm select, #xssRuleCreationForm textarea').on('input change', updateJsonPreview);
 
 $(document).ready(function () {
-    updateJsonPreview()
+    updateJsonPreview();
     fetchData(
         '/api/rule/rule-library?ruleType=true',
         'GET',
@@ -29,32 +28,32 @@ $(document).ready(function () {
         function () {
             $('#ruleLibraryField').empty().append(`
                 <div class="loader"></div>
-            `)
+            `);
         },
         function (data) {
             $('#ruleLibraryField').empty().append(`
                 <select name="ruleLibrary" id="ruleLibrary" class="form-control">
                     <option value="not_used">Not Used</option>
                 </select>
-            `)
+            `);
             for (let index = 0; index < data.data.length; index++) {
                 const element = data.data[index];
-                $('#ruleLibrary').append(`<option value="${element}">${element}</option>`)
-                updateJsonPreview()
+                $('#ruleLibrary').append(`<option value="${element}">${element}</option>`);
+                updateJsonPreview();
                 $('#ruleLibrary').on('change', function () {
-                    updateJsonPreview()
-                })
+                    updateJsonPreview();
+                });
             }
         },
         function () {
-            notificator('Error', 'Can\'t fetch Rule Library!', 'error')
+            notificator('Error', 'Can\'t fetch Rule Library!', 'error');
             $('#ruleLibraryField').empty().append(`
                 <select name="ruleLibrary" id="ruleLibrary" class="form-control">
                     <option value="not_used">Not Used</option>
                 </select>
-            `)
+            `);
         }
-    )
+    );
 
     fetchData(
         '/api/action/list?actionName=true',
@@ -63,117 +62,114 @@ $(document).ready(function () {
         function () {
             $('#actionField').empty().append(`
                 <div class="loader"></div>
-            `)
+            `);
         },
         function (data) {
             $('#actionField').empty().append(`
                 <select name="action" id="action" class="form-control">
                     <option value="not_used">Not Used</option>
                 </select>
-            `)
+            `);
             for (let index = 0; index < data.data.length; index++) {
                 const element = data.data[index];
-                $('#action').append(`<option value="${element}">${element}</option>`)
-                updateJsonPreview()
+                $('#action').append(`<option value="${element}">${element}</option>`);
+                updateJsonPreview();
                 $('#action').on('change', function () {
-                    updateJsonPreview()
-                })
+                    updateJsonPreview();
+                });
             }
         },
         function () {
-            notificator('Error', 'Can\'t fetch Rule Library!', 'error')
+            notificator('Error', 'Can\'t fetch Rule Library!', 'error');
             $('#actionField').empty().append(`
                 <select name="action" id="action" class="form-control">
                     <option value="not_used">Not Used</option>
                 </select>
-            `)
+            `);
         }
-    )
+    );
 
-    $('#sqlInjectionRuleCreationButton').on('click', function (event) {
-        event.preventDefault()
-        $('#ruleNameErrorField, #ipRootCauseFieldErrorField, #regexMatcherErrorField, #ruleLibraryErrorField').empty()
-        let errorCounter = 0
-        let ruleNameError = false
-        let ipRootCauseFieldError = false
-        let regexMatcherAndRuleLibraryError = false
+    $('#xssRuleCreationButton').on('click', function (event) {
+        event.preventDefault();
+        $('#ruleNameErrorField, #ipRootCauseFieldErrorField, #regexMatcherErrorField, #ruleLibraryErrorField').empty();
+        let errorCounter = 0;
+        let ruleNameError = false;
+        let ipRootCauseFieldError = false;
+        let regexMatcherAndRuleLibraryError = false;
         if (String($('#ruleName').val()).length == 0) {
-            errorCounter++
-            ruleNameError = true
+            errorCounter++;
+            ruleNameError = true;
         }
         if (String($('#ipRootCauseField').val()).length == 0) {
-            errorCounter++
-            ipRootCauseFieldError = true
+            errorCounter++;
+            ipRootCauseFieldError = true;
         }
         if (String($('#regexMatcher').val()).length == 0 && $('#ruleLibrary').val() == 'not_used') {
-            errorCounter++
-            regexMatcherAndRuleLibraryError = true
+            errorCounter++;
+            regexMatcherAndRuleLibraryError = true;
         }
 
         if (errorCounter >= 1) {
-            notificator('Error', 'Form validation fail!', 'error')
-            if (ruleNameError == true) {
+            notificator('Error', 'Form validation fail!', 'error');
+            if (ruleNameError) {
                 $('#ruleNameErrorField').empty().append(`
                     <p class="error-text">Rule Name cannot be left blank</p>
-                `)
+                `);
             }
-            if (ipRootCauseFieldError == true) {
+            if (ipRootCauseFieldError) {
                 $('#ipRootCauseFieldErrorField').empty().append(`
                     <p class="error-text">IP Root Cause Field cannot be left blank</p>
-                `)
+                `);
             }
-            if (regexMatcherAndRuleLibraryError == true) {
+            if (regexMatcherAndRuleLibraryError) {
                 $('#regexMatcherErrorField').empty().append(`
                     <p class="error-text">Regex Matcher cannot be left blank if Rule Library is not used</p>
-                `)
+                `);
                 $('#ruleLibraryErrorField').empty().append(`
                     <p class="error-text">Rule Library must be used if Regex Matcher is left blank</p>
-                `)
+                `);
             }
-            return
+            return;
         }
 
-        if ($("input[type='radio'][name='isEnabled']:checked").val() == undefined) {            
-            $("input[type='radio'][name='isEnabled'][value='true']").prop('checked', true)
+        if ($("input[type='radio'][name='isEnabled']:checked").val() == undefined) {
+            $("input[type='radio'][name='isEnabled'][value='true']").prop('checked', true);
         }
-        const form = document.getElementById('sqlInjectionRuleCreationForm')
-        const formData = new FormData(form)
-        const jsonData = {}
+        const form = document.getElementById('xssRuleCreationForm');
+        const formData = new FormData(form);
+        const jsonData = {};
 
         formData.forEach((value, key) => {
-            if (key === 'subscribe') {
-                jsonData[key] = true
-            } else {
-                jsonData[key] = value
-            }
-        })
+            jsonData[key] = value;
+        });
 
-        const jsonString = JSON.stringify(jsonData)
-        console.log(jsonString)
+        const jsonString = JSON.stringify(jsonData);
+        console.log(jsonString);
         callAPI(
             'POST',
-            '/api/sqli/create',
+            '/api/xss/create',
             function () {
-                $('#sqlInjectionRuleCreationButton').empty().append(`
+                $('#xssRuleCreationButton').empty().append(`
                     <div class="loader"></div>
-                `).attr('disabled', true)
+                `).attr('disabled', true);
             },
             function () {
-                notificator('Success', 'Create SQL Injection rule successfully', 'success')
+                notificator('Success', 'Create XSS rule successfully', 'success');
                 setTimeout(function () {
-                    location.href = 'rule_management.html'
-                }, 1000)
+                    location.href = 'rule_management.html';
+                }, 1000);
             },
             function (data) {
                 if (data.status >= 400) {
-                    notificator('Fail', JSON.parse(data.responseText).reason, 'warning')
-                    $('#sqlInjectionRuleCreationButton').empty().text('Create').removeAttr('disabled')
-                    return
+                    notificator('Fail', JSON.parse(data.responseText).reason, 'warning');
+                    $('#xssRuleCreationButton').empty().text('Create').removeAttr('disabled');
+                    return;
                 }
-                notificator('Error', 'Create SQL Injection rule fail', 'error')
-                $('#sqlInjectionRuleCreationButton').empty().text('Create').removeAttr('disabled')
+                notificator('Error', 'Create XSS rule failed', 'success');
+                $('#xssRuleCreationButton').empty().text('Create').removeAttr('disabled');
+                console.log(data.responseText);
             },
             jsonString
-        )
-    })
-})
+        );
+    });
+});

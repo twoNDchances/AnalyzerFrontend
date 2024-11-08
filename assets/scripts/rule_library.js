@@ -1,4 +1,6 @@
-import { fetchData, notificator } from "./general.js";
+import { fetchData, notificator, checker } from "./general.js";
+
+checker();
 
 $(document).ready(function () {
     // Fetch filter
@@ -62,32 +64,96 @@ $(document).ready(function () {
                     <div class="loader"></div>
                 </div>
             `)
+            $('#XSS').empty().append(`
+                <div class="small-item-center">
+                    <div class="loader"></div>
+                </div>
+            `)
         },
         function (response) {
-            $('#SQLI').empty().append(`
-                <table class="mb-0 table table-striped ruleLibraryTable">
-                    <thead>
-                        <tr>
-                            <th class="text-center">ID</th>
-                            <th class="text-center">Rule Type</th>
-                            <th>Rule Execution</th>
-                            <th>Rule Description</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ruleLibraryTableOfSQLI">
-                    </tbody>
-                </table>
-            `)
+            let sqliCounter = 0;
+            let xssCounter = 0;
             for (let index = 0; index < response.data.length; index++) {
                 const element = response.data[index];
-                $('#ruleLibraryTableOfSQLI').append(`
-                    <tr id="ruleManagementRowOfSQLI_${element.id}">
-                        <th class="text-center">${element.id}</th>
-                        <td class="text-center">${element.rule_type}</td>
-                        <td>${element.rule_execution}</td>
-                        <td>${element.rule_description}</td>
-                    </tr>
+                if (element.rule_type == 'SQLI') {
+                    sqliCounter++
+                }
+                else if (element.rule_type == 'XSS') {
+                    xssCounter++
+                }
+            }
+            if (sqliCounter == 0) {
+                $('#SQLI').empty().append(`
+                    <div class="item-center">
+                        <p>Empty</p>
+                    </div>
                 `)
+            }
+            else {
+                $('#SQLI').empty().append(`
+                    <table class="mb-0 table table-striped ruleLibraryTable">
+                        <thead>
+                            <tr>
+                                <th class="text-center">ID</th>
+                                <th class="text-center">Rule Type</th>
+                                <th>Rule Execution</th>
+                                <th>Rule Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ruleLibraryTableOfSQLI">
+                        </tbody>
+                    </table>
+                `)
+                for (let index = 0; index < response.data.length; index++) {
+                    const element = response.data[index];
+                    if (element.rule_type == 'SQLI') {
+                        $('#ruleLibraryTableOfSQLI').append(`
+                            <tr id="ruleManagementRowOfSQLI_${element.id}">
+                                <th class="text-center">${element.id}</th>
+                                <td class="text-center">${element.rule_type}</td>
+                                <td>${element.rule_execution}</td>
+                                <td>${element.rule_description}</td>
+                            </tr>
+                        `)
+                    }
+                }
+            }
+
+            if (xssCounter == 0) {
+                $('#XSS').empty().append(`
+                    <div class="item-center">
+                        <p>Empty</p>
+                    </div>
+                `)
+            }
+            else {
+                $('#XSS').empty().append(`
+                    <table class="mb-0 table table-striped ruleLibraryTable">
+                        <thead>
+                            <tr>
+                                <th class="text-center">ID</th>
+                                <th class="text-center">Rule Type</th>
+                                <th>Rule Execution</th>
+                                <th>Rule Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ruleLibraryTableOfXSS">
+                        </tbody>
+                    </table>
+                `)
+                for (let index = 0; index < response.data.length; index++) {
+                    const element = response.data[index];
+                    if (element.rule_type == 'XSS') {
+                        $('#ruleLibraryTableOfXSS').append(`
+                            <tr id="ruleManagementRowOfXSS_${element.id}">
+                                <th class="text-center">${element.id}</th>
+                                <td class="text-center">${element.rule_type}</td>
+                                <td>${element.rule_execution}</td>
+                                <td>${element.rule_description}</td>
+                            </tr>
+                        `)
+                    }
+                }
             }
         },
         function (status, errorMessage) {
