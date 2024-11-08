@@ -1,10 +1,6 @@
 import { fetchData, getCookie, notificator, checker } from './general.js';
 
-<<<<<<< HEAD
-checker();
-=======
 checker()
->>>>>>> c5c92132cec9a4c4656d5b1a059d2d32f1c8f504
 
 $(document).ready(function () {
     fetchData(

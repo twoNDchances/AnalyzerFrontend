@@ -2,8 +2,6 @@ import { checker, notificator, callAPI, fetchData, convertFormToJSON } from './g
 
 checker()
 
-checker()
-
 $(document).ready(function () {
     // Fetch SQLI
     fetchData(
