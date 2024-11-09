@@ -72,7 +72,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="rule_results.html" class="nav-link">
                                 <i class="nav-link-icon pe-7s-news-paper"> </i>
                                 Rule Results
                             </a>
@@ -84,7 +84,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="rule_inheritance.html" class="nav-link">
                                 <i class="nav-link-icon pe-7s-shuffle"> </i>
                                 Rule Inheritance
                             </a>
@@ -193,7 +193,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="rule_results.html">
                                     <i class="metismenu-icon pe-7s-news-paper"></i>
                                     Rule Results
                                 </a>
@@ -227,7 +227,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="rule_inheritance.html">
                                     <i class="metismenu-icon pe-7s-shuffle"></i>
                                     Rule Inheritance
                                 </a>
@@ -614,36 +614,6 @@
             }
             else {
                 xhr.send(body);
-            }
-        }
-
-        async function fetchData(endpoint, method = 'GET', body = null, onLoading, onSuccess, onError) {
-            if (onLoading) onLoading();
-
-            try {
-                const options = {
-                    method: method.toUpperCase(),
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                };
-
-                if (body) {
-                    options.body = JSON.stringify(body);
-                }
-
-                const response = await fetch(getCookie('backendAPI') + endpoint, options);
-
-                if (!response.ok) {
-                    if (onError) onError(response.status, `Error: ${response.statusText}`);
-                    return;
-                }
-
-                const data = await response.json();
-
-                if (onSuccess) onSuccess(data);
-            } catch (error) {
-                if (onError) onError(null, `Network error: ${error.message}`);
             }
         }
 

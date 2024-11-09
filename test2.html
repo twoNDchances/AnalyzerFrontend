@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form to JSON with Checkboxes</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2>Form to JSON with Checkboxes</h2>
+    <form id="dynamicForm">
+        <div id="formContainer">
+            <div class="form-row mb-3">
+                <div class="col-md-8">
+                    <div class="position-relative form-group">
+                        <label for="ruleExecution">Rule Execution</label>
+                        <textarea name="ruleExecution" placeholder="Rule Regex" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="position-relative form-group">
+                        <label for="ruleDescription">Rule Description</label>
+                        <textarea name="ruleDescription" placeholder="Optional" class="form-control"></textarea>
+                    </div>
+                </div>
+            </div>
+            <!-- Thêm các checkbox để kiểm tra -->
+            <div class="form-check">
+                <input type="checkbox" name="features" value="Feature1" class="form-check-input">
+                <label class="form-check-label" for="feature1">Feature 1</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" name="features" value="Feature2" class="form-check-input">
+                <label class="form-check-label" for="feature2">Feature 2</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" name="features" value="Feature3" class="form-check-input">
+                <label class="form-check-label" for="feature3">Feature 3</label>
+            </div>
+        </div>
+        <!-- Nút thêm trường -->
+        <button type="button" class="btn btn-primary mt-3" onclick="addFormRow()">Add Row</button>
+        <button type="button" class="btn btn-success mt-3" onclick="convertFormToJSON()">Convert to JSON</button>
+    </form>
+
+    <div id="jsonOutput" class="mt-3"></div>
+</div>
+
+<script>
+    function addFormRow() {
+        const formRow = document.createElement('div');
+        formRow.className = 'form-row mb-3';
+        formRow.innerHTML = `
+            <div class="col-md-8">
+                <div class="position-relative form-group">
+                    <label>Rule Execution</label>
+                    <textarea name="ruleExecution" placeholder="Rule Regex" class="form-control"></textarea>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="position-relative form-group">
+                    <label>Rule Description</label>
+                    <textarea name="ruleDescription" placeholder="Optional" class="form-control"></textarea>
+                </div>
+            </div>
+        `;
+        document.getElementById('formContainer').appendChild(formRow);
+    }
+
+    function convertFormToJSON() {
+        const form = document.getElementById('dynamicForm');
+        const formData = new FormData(form);
+        const jsonObject = {};
+
+        formData.forEach((value, key) => {
+            const element = form.querySelector(`[name="${key}"]`);
+            
+            // Xử lý checkbox: Lấy giá trị của checkbox khi được chọn
+            if (element && element.type === 'checkbox') {
+                if (element.checked) {
+                    if (!jsonObject[key]) {
+                        jsonObject[key] = [];
+                    }
+                    jsonObject[key].push(value); // Thêm giá trị của checkbox khi được chọn
+                }
+            } else {
+                // Xử lý các trường bình thường (không phải checkbox)
+                if (jsonObject[key]) {
+                    if (!Array.isArray(jsonObject[key])) {
+                        jsonObject[key] = [jsonObject[key]];
+                    }
+                    jsonObject[key].push(value);
+                } else {
+                    jsonObject[key] = value;
+                }
+            }
+        });
+
+        // Chuyển đổi đối tượng thành chuỗi JSON và hiển thị
+        const jsonOutput = JSON.stringify(jsonObject, null, 2);
+        document.getElementById('jsonOutput').innerText = jsonOutput;
+    }
+</script>
+
+</body>
+</html>

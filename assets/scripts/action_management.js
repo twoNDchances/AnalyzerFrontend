@@ -1,4 +1,4 @@
-import { fetchData, getCookie, notificator, checker } from './general.js';
+import { fetchData, getCookie, notificator, checker, callAPI, convertFormToJSON } from './general.js';
 
 checker()
 
@@ -64,12 +64,12 @@ $(document).ready(function () {
                             <td class="text-center">${element.action_type}</td>
                             <td><pre>${JSON.stringify(JSON.parse(element.action_configuration), null, 4)}</pre></td>
                             <td class="text-center">
-                                <button class="mb-2 mr-2 btn btn-light">
+                                <button class="mb-2 mr-2 btn btn-light" data-toggle="modal" data-target="#actionDetailsModal" data-id="${element.id}" onclick=getActionDetails(this)>
                                     <i class="fa fa-eye"></i>
                                 </button>
                             </td>
                             <td class="text-center">
-                                <button class="mb-2 mr-2 btn btn-danger">
+                                <button class="mb-2 mr-2 btn btn-danger" data-toggle="modal" data-target="#actionDeleteModal" data-id="${element.id}" onclick=removeActionDetails(this)>
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </td>
@@ -110,12 +110,12 @@ $(document).ready(function () {
                             <td class="text-center">${element.action_type}</td>
                             <td><pre>${JSON.stringify(JSON.parse(element.action_configuration), null, 4)}</pre></td>
                             <td class="text-center">
-                                <button class="mb-2 mr-2 btn btn-light">
+                                <button class="mb-2 mr-2 btn btn-light" data-toggle="modal" data-target="#actionDetailsModal" data-id="${element.id}" onclick=getActionDetails(this)>
                                     <i class="fa fa-eye"></i>
                                 </button>
                             </td>
                             <td class="text-center">
-                                <button class="mb-2 mr-2 btn btn-danger">
+                                <button class="mb-2 mr-2 btn btn-danger" data-toggle="modal" data-target="#actionDeleteModal" data-id="${element.id}" onclick=removeActionDetails(this)>
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </td>
@@ -171,4 +171,97 @@ $(document).ready(function () {
             }
         }
     )
+
+    $('#updateButton').on('click', function () {
+        const id = document.getElementById('updateButton').getAttribute('data-id')
+        const form = document.getElementById('actionUpdateForm');
+        const formData = new FormData(form)
+        const formJSON = convertFormToJSON(formData)
+        callAPI(
+            'PUT',
+            '/api/action/update/' + id,
+            function () {
+                $('#updateButton').empty().append(`
+                    <div class="loader"></div>
+                `).attr('disabled', true)
+            },
+            function (event) {
+                const responseData = JSON.parse(event.responseText)
+                $('#updateButton').empty().text('Update').removeAttr('disabled')
+                notificator('Success', 'Action update successfully', 'success')
+                $('#actionDetailsModalCloseButton').click()
+                if (responseData.data.action_type == 'webhook'){
+                    $(`#actionManagementRowOfWebhook_${responseData.data.id}`).empty().append(`
+                        <th class="text-center">${responseData.data.id}</th>
+                        <td class="text-center">${responseData.data.action_name}</td>
+                        <td class="text-center">${responseData.data.action_type}</td>
+                        <td><pre>${JSON.stringify(responseData.data.action_configuration, null, 4)}</pre></td>
+                        <td class="text-center">
+                            <button class="mb-2 mr-2 btn btn-light" data-toggle="modal" data-target="#actionDetailsModal" data-id="${responseData.data.id}" onclick=getActionDetails(this)>
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </td>
+                        <td class="text-center">
+                            <button class="mb-2 mr-2 btn btn-danger" data-toggle="modal" data-target="#actionDeleteModal" data-id="${responseData.data.id}" onclick=removeActionDetails(this)>
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    `)
+                }
+                else if (responseData.data.action_type == 'email') {
+                    $(`#actionManagementRowOfEmail_${responseData.data.id}`).empty().append(`
+                        <th class="text-center">${responseData.data.id}</th>
+                        <td class="text-center">${responseData.data.action_name}</td>
+                        <td class="text-center">${responseData.data.action_type}</td>
+                        <td><pre>${JSON.stringify(JSON.parse(responseData.data.action_configuration), null, 4)}</pre></td>
+                        <td class="text-center">
+                            <button class="mb-2 mr-2 btn btn-light" data-toggle="modal" data-target="#actionDetailsModal" data-id="${responseData.data.id}" onclick=getActionDetails(this)>
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </td>
+                        <td class="text-center">
+                            <button class="mb-2 mr-2 btn btn-danger" data-toggle="modal" data-target="#actionDeleteModal" data-id="${responseData.data.id}" onclick=removeActionDetails(this)>
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    `)
+                }
+            },
+            function (event) {
+                const responseError = JSON.parse(event.responseText)
+                $('#updateButton').empty().text('Update').removeAttr('disabled')
+                notificator('Error', responseError.reason, 'error')
+            },
+            formJSON
+        )
+    })
+
+    $('#removeButton').on('click', function() {
+        const id = document.getElementById('removeButton').getAttribute('data-id')
+        callAPI(
+            'DELETE',
+            '/api/action/delete/' + id,
+            function () {
+                $('#removeButton').empty().append(`
+                    <div class="loader"></div>
+                `).attr('disabled', true)
+            },
+            function (event) {
+                const responseData = JSON.parse(event.responseText)
+                notificator('Success', 'Action delete successfully', 'success')
+                $('#removeButton').empty().text('Remove').removeAttr('disabled')
+                $('#actionDeleteModalCloseButton').click()
+                if (responseData.data.action_type == 'webhook') {
+                    $(`#actionManagementRowOfWebhook_${responseData.data.id}`).remove()
+                }
+                else if (responseData.data.action_type == 'email') {
+                    $(`#actionManagementRowOfEmail_${responseData.data.id}`).remove()
+                }
+            },
+            function () {
+                $('#removeButton').empty().text('Remove').removeAttr('disabled')
+                notificator('Error', 'Can\'t remove this action', 'error')
+            }
+        )
+    })
 })

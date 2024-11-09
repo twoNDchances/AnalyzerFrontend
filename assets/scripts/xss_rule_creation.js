@@ -80,7 +80,7 @@ $(document).ready(function () {
             }
         },
         function () {
-            notificator('Error', 'Can\'t fetch Rule Library!', 'error');
+            notificator('Error', 'Can\'t fetch Action!', 'error');
             $('#actionField').empty().append(`
                 <select name="action" id="action" class="form-control">
                     <option value="not_used">Not Used</option>

@@ -17,17 +17,21 @@ $(document).ready(function () {
                     <option value="null">-----</option>
                 </select>
             `)
+            const ruleTypeList = []
             for (let index = 0; index < data.data.length; index++) {
                 const element = data.data[index];
+                ruleTypeList.push(element)
                 if (element == 'SQLI') {
                     $('#ruleType').append(`<option value="${element}">SQL Injection (SQLI)</option>`)
                 }
                 else if (element == 'XSS') {
                     $('#ruleType').append(`<option value="${element}">Cross Site Scripting (XSS)</option>`)
                 }
+                else {
+                    $('#ruleType').append(`<option value="${element}">${element}</option>`)
+                }
             }
             $('#ruleType').on('change', function () {
-                const ruleTypeList = ['SQLI', 'XSS']                
                 for (let index = 0; index < ruleTypeList.length; index++) {
                     const element = ruleTypeList[index];
                     if ($('#ruleType').val() == 'null') {                        
@@ -53,7 +57,7 @@ $(document).ready(function () {
             notificator('Error', 'Can\'t fetch rule type from Rule Library!', 'error')
         }
     )
-    // Fetch SQLI
+
     fetchData(
         '/api/rule/rule-library',
         'GET',
@@ -71,8 +75,11 @@ $(document).ready(function () {
             `)
         },
         function (response) {
+            console.log(response);
+            
             let sqliCounter = 0;
             let xssCounter = 0;
+            let otherRuleType = []
             for (let index = 0; index < response.data.length; index++) {
                 const element = response.data[index];
                 if (element.rule_type == 'SQLI') {
@@ -80,6 +87,48 @@ $(document).ready(function () {
                 }
                 else if (element.rule_type == 'XSS') {
                     xssCounter++
+                }
+                else {
+                    otherRuleType.push(element.rule_type)
+                }
+            }
+            console.log(otherRuleType);
+            
+            const uniqueOtherRuleType = [...new Set(otherRuleType)]
+            for (let index = 0; index < uniqueOtherRuleType.length; index++) {
+                const element = uniqueOtherRuleType[index];
+                $('#otherRuleTypeField').append(`
+                    <div class="main-card mb-3 card" id="cardOf${element}">
+                        <div class="card-body"><h1 class="card-title medium-header">${element}</h1>
+                            <div id="${element}" class="table-responsive">
+                                <table class="mb-0 table table-striped ruleLibraryTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">ID</th>
+                                            <th class="text-center">Rule Type</th>
+                                            <th>Rule Execution</th>
+                                            <th>Rule Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ruleLibraryTableOf${element}">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `)
+                for (let index = 0; index < response.data.length; index++) {
+                    const otherElement = response.data[index];
+                    if (element == otherElement.rule_type) {
+                        $(`#ruleLibraryTableOf${element}`).append(`
+                            <tr id="ruleManagementRowOf${element}_${otherElement.id}">
+                                <th class="text-center">${otherElement.id}</th>
+                                <td class="text-center">${otherElement.rule_type}</td>
+                                <td>${otherElement.rule_execution}</td>
+                                <td>${otherElement.rule_description}</td>
+                            </tr>
+                        `)
+                    }
                 }
             }
             if (sqliCounter == 0) {
@@ -157,6 +206,8 @@ $(document).ready(function () {
             }
         },
         function (status, errorMessage) {
+            console.log(errorMessage);
+            
             if (status == 404) {
                 $('#SQLI').empty().append(`
                     <div class="item-center">

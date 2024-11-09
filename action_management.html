@@ -71,7 +71,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="rule_results.html" class="nav-link">
                                 <i class="nav-link-icon pe-7s-news-paper"> </i>
                                 Rule Results
                             </a>
@@ -83,7 +83,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="rule_inheritance.html" class="nav-link">
                                 <i class="nav-link-icon pe-7s-shuffle"> </i>
                                 Rule Inheritance
                             </a>
@@ -192,7 +192,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="rule_results.html">
                                     <i class="metismenu-icon pe-7s-news-paper"></i>
                                     Rule Results
                                 </a>
@@ -226,7 +226,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="rule_inheritance.html">
                                     <i class="metismenu-icon pe-7s-shuffle"></i>
                                     Rule Inheritance
                                 </a>
@@ -316,6 +316,215 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script type="module" src="./assets/scripts/action_management.js"></script>
+    <script>
+        function getActionDetails(get) {
+            const id = get.getAttribute('data-id')
+            document.getElementById('updateButton').setAttribute('data-id', id)
+            console.log(id);
+            callAPI(
+                'GET',
+                '/api/action/show/' + id,
+                function () {
+                    $('#actionDetailsModalBody').empty().append(`
+                        <div class="small-item-center">
+                            <div class="loader"></div>
+                        </div>
+                    `)
+                },
+                function (event) {
+                    const responseText = JSON.parse(event.responseText)
+                    $('#actionDetailsModalTitle').empty().append('Action ID: #' + responseText.data.id)
+                    $('#actionDetailsModalBody').empty().append(`
+                        <form id="actionUpdateForm">
+                            <div class="position-relative form-group">
+                                <label for="actionName" class="">Action Name</label>
+                                <input name="actionName" id="actionName" placeholder="Action Name" type="text" class="form-control" value="${responseText.data.action_name}">
+                                <div id="actionNameErrorField"></div>
+                            </div>
+                            <div class="position-relative form-group">
+                                <label for="actionConfiguration" class="">Action Configuration</label>
+                                <pre><textarea rows="8" name="actionConfiguration" id="actionConfiguration" class="form-control">${(JSON.parse(JSON.stringify(responseText.data.action_configuration, null, 4)))}</textarea></pre>
+                            </div>
+                        </form>
+                    `)
+                    $('#actionRelatedModalBody').empty().append(`
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-center"><strong>SQLI Related</strong></h6>
+                                <ul id="sqliActionRelated"></ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-center"><strong>XSS Related</strong></h6>
+                                <ul id="xssActionRelated"></ul>
+                            </div>
+                        </div>
+                    `)
+                    for (let index = 0; index < responseText.data.rule_related.sqli.length; index++) {
+                        const element = responseText.data.rule_related.sqli[index];
+                        $('#sqliActionRelated').append(`<li>${element}</li>`)
+                    }
+                    for (let index = 0; index < responseText.data.rule_related.xss.length; index++) {
+                        const element = responseText.data.rule_related.xss[index];
+                        $('#xssActionRelated').append(`<li>${element}</li>`)
+                    }
+                },
+                function (event) {
+                    const responseError = JSON.parse(event.responseText)
+                    notificator('Error', responseError.reason, 'error')
+                    $('#actionDetailsModalBody').empty();
+                },
+                null
+            )
+        }
+
+        function removeActionDetails(get) {
+            const id = get.getAttribute('data-id')
+            document.getElementById('removeButton').setAttribute('data-id', id)
+            callAPI(
+                'GET',
+                '/api/action/delete/' + id,
+                function () {
+                    $('#actionRelatedDeleteModalBody').empty().append(`
+                        <div class="small-item-center">
+                            <div class="loader"></div>
+                        </div>
+                    `)
+                },
+                function (event) {
+                    const responseData = JSON.parse(event.responseText)
+                    $('#actionRelatedDeleteModalBody').empty().append(`
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-center"><strong>SQLI Related</strong></h6>
+                                <ul id="sqliActionDeleteRelated"></ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-center"><strong>XSS Related</strong></h6>
+                                <ul id="xssActionDeleteRelated"></ul>
+                            </div>
+                        </div>
+                    `)
+                    for (let index = 0; index < responseData.data.sqli.length; index++) {
+                        const element = responseData.data.sqli[index];
+                        $('#sqliActionDeleteRelated').append(`
+                            <li>${element}</li>
+                        `)
+                    }
+                    for (let index = 0; index < responseData.data.xss.length; index++) {
+                        const element = responseData.data.xss[index];
+                        $('#xssActionDeleteRelated').append(`
+                            <li>${element}</li>
+                        `)
+                    }
+                },
+                function () {
+                    $('#actionRelatedDeleteModalBody').empty()
+                    notificator('Error', 'Can\'t fetch the related rules', 'error')
+                }
+            )
+        }
+
+        function callAPI(method, endpoint, onLoading, onSuccess, onError, body = null) {
+            let xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 0 || this.readyState == 1 || this.readyState == 2 || this.readyState == 3) {
+                    onLoading()
+                }
+                else if (this.readyState == 4 && this.status == 200) {
+                    onSuccess(this)
+                }
+                else if (this.status != 200) {
+                    onError(this)
+                }
+            }
+            xhr.open(method, getCookie('backendAPI') + endpoint);
+            xhr.setRequestHeader('Content-Type', 'application/json')
+            if (body == null) {
+                xhr.send();
+            }
+            else {
+                xhr.send(body);
+            }
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "="
+            const cookiesArray = document.cookie.split(';')
+            for (let i = 0; i < cookiesArray.length; i++) {
+                let cookie = cookiesArray[i]
+                while (cookie.charAt(0) === ' ') {
+                    cookie = cookie.substring(1, cookie.length)
+                }
+                if (cookie.indexOf(nameEQ) === 0) {
+                    return decodeURIComponent(cookie.substring(nameEQ.length, cookie.length))
+                }
+            }
+            return null;
+        }
+
+        function notificator(title, message, type) {
+            toastr.options.closeMethod = 'fadeOut';
+            toastr.options.closeDuration = 300;
+            toastr.options.closeEasing = 'swing';
+            toastr.options.timeOut = 5000;
+            toastr.options.showMethod = 'slideDown';
+            toastr.options.hideMethod = 'slideUp';
+            toastr.options.preventDuplicates = true;
+            if (type == 'info') {
+                toastr.info(message, title);
+            }
+            if (type == 'success') {
+                toastr.success(message, title);
+            }
+            if (type == 'warning') {
+                toastr.warning(message, title);
+            }
+            if (type == 'error') {
+                toastr.error(message, title);
+            }
+        }
+    </script>
 </body>
 
 </html>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="actionDetailsModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="actionDetailsModalTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="actionDetailsModalBody"></div>
+            <div class="modal-body" id="actionRelatedModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="actionDetailsModalCloseButton">Close</button>
+                <button type="button" class="btn btn-primary" id="updateButton">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="actionDeleteModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="actionDeleteModalTitle">Remove Action</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                If you really want to delete this action, the related rules listed below will switch to "Not Used".
+                <div class="modal-body" id="actionRelatedDeleteModalBody"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="actionDeleteModalCloseButton">Close</button>
+                <button type="button" class="btn btn-danger" id="removeButton">Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
